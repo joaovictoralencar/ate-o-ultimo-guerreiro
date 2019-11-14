@@ -1,0 +1,34 @@
+#main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.h100 {
+  height: 100vh;
+}
+
+#button-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+
+#title {
+  text-align: center;
+}
+
+a {
+  text-decoration: none;
+  color: black;
+}
+
+.btn-voltar {
+  float: left;
+}
+
+.exemplo {
+  display: flex;
+  align-self: center;
+}

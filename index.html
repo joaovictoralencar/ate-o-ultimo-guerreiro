@@ -1,90 +1,18 @@
 <!DOCTYPE html>
 <html>
-
-<head>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.15.1/dist/phaser-arcade-physics.min.js"></script>
-</head>
-
-<body>
-
-    <script>
-        var config = {
-            type: Phaser.AUTO,
-            width: 640,
-            height: 640,
-            physics: {
-                default: 'arcade',
-            },
-            scene: {
-                preload: preload,
-                create: create,
-                update: update
-            }
-        };
-
-        var game = new Phaser.Game(config);
-        var logo;
-        var map;
-
-        function preload() {
-            this.load.setBaseURL('http://labs.phaser.io');
-
-            this.load.image('sky', 'assets/skies/space3.png');
-            this.load.image('logo', 'assets/sprites/phaser3-logo.png');
-            this.load.image('red', 'assets/particles/red.png');
-            this.load.image('tiles', 'assets/tilemaps/tiles/gridtiles.png');
-            this.load.image('car', 'assets/sprites/car90.png');
-        }
-
-        function create() {
-            //this.add.image(400, 300, 'sky');
-
-            //cria 32 arrays de 32 com o valor 0
-            //define o a distribuicao de tiles no mapa
-            const level = new Array(32).fill(new Array(32).fill(0));
-
-            //cria o mapa a partir de 'level' e define o tamanho em px de cada tile 
-            map = this.make.tilemap({ data: level, tileWidth: 32, tileHeight: 32 });
-            //cria o o tileset a partir de uma imagem
-            var tileset = map.addTilesetImage('tiles');
-            //cria um objeto layer para renderizar os tiles
-            var layer = map.createStaticLayer(0, tileset, 0, 0);
-
-            //adiciona fisica e determina item como draggable
-            logo = this.physics.add.image(16, 16, 'car').setInteractive({ draggable: true });
-            //listener para drag
-            logo.on('drag', function (pointer, dragX, dragY) {
-
-                //arredonda para o tile mais proximo
-                var pointerTileX = map.worldToTileX(dragX);
-                var pointerTileY = map.worldToTileY(dragY);
-
-                //faz o snap para as coordenadas do tile, transformando para coordenadas de mundo
-                this.x = map.tileToWorldX(pointerTileX) + 16;
-                this.y = map.tileToWorldY(pointerTileY) + 16;
-            });
-
-            //faz colisao com as bordas
-            logo.setCollideWorldBounds(true);
-
-            //cria particulas
-            var particles = this.add.particles('red');
-
-            var emitter = particles.createEmitter({
-                speed: 10,
-                scale: { start: 0.1, end: 0 },
-                blendMode: 'ADD'
-            });
-
-            emitter.startFollow(logo);
-
-        }
-
-        function update(time, delta) {
-        }
-
-    </script>
-
-</body>
-
+  <head>
+    <title>Pagina Inicial</title>
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <div id="main" class="h100">
+      <div id="title">Escolha um dos exemplos para ser redirecionado</div>
+      <div id="button-container">
+        <button><a href="./examples/dragAndDrop.html">Drag'n'Drop</a></button>
+        <button>
+          <a href="./examples/behaviorTree.html">Behavior Tree</a>
+        </button>
+      </div>
+    </div>
+  </body>
 </html>
