@@ -22,3 +22,15 @@ export {
     default as Root
 }
 from './Decorators/Root.mjs'
+export {
+    default as Move
+}
+from './Move.mjs'
+export {
+    default as Attack
+}
+from './Attack.mjs'
+export {
+    default as CheckIfTargetIsInRange
+}
+from './CheckIfTargetIsInRange.mjs'

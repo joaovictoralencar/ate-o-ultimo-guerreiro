@@ -1,4 +1,4 @@
-class Warrior {
+export default class Warrior {
     constructor(){
         let _id = 0;
         let _name = "Joe";
@@ -41,9 +41,9 @@ class Warrior {
         }
     }
     move(){
-        console.log(this.getName() + "("+this.getId()+")["+this.getType+"] is moving")
+        console.log(this.getName() + "("+this.getId()+")["+this.getType()+"] is moving")
     }
     attack(){
-        console.log(this.getName() + "("+this.getId()+")["+this.getType+"] is attacking")
+        console.log(this.getName() + "("+this.getId()+")["+this.getType()+"] is attacking")
     }
 }

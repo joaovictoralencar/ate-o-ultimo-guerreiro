@@ -4,7 +4,7 @@ export default class Sequence extends CompositeNode {
         super();
     }
     run (){
-        this.getChildren.forEach(child => {
+        this.getChildren().forEach(child => {
             if (!child.run()){
                 console.log("Sequence failed")
                 return false

@@ -1,4 +1,4 @@
-import Node from './Node.mjs'
+import Node from '../Node.mjs'
 export default class CompositeNode extends Node {
     constructor(){
         super();

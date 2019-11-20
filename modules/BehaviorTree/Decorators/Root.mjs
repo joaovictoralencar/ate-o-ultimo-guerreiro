@@ -4,7 +4,7 @@ export default class Root extends DecoratorNode {
         super();
     }
     run() {
-        if (this.getChild.run()) {
+        if (this.getChild().run()) {
             console.log("Behavior succeeded")
             return true;
         } else
