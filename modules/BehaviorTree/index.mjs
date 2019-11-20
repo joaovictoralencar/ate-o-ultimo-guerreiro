@@ -5,20 +5,20 @@ from './Node.mjs'
 export {
     default as CompositeNode
 }
-from './CompositeNode.mjs'
+from './Decorators/CompositeNode.mjs'
 export {
     default as DecoratorNode
 }
-from './DecoratorNode.mjs'
+from './Decorators/DecoratorNode.mjs'
 export {
     default as Selector
 }
-from './Selector.mjs'
+from './Composites/Selector.mjs'
 export {
     default as Sequence
 }
-from './Sequence.mjs'
+from './Composites/Sequence.mjs'
 export {
     default as Root
 }
-from './Root.mjs'
+from './Decorators/Root.mjs'

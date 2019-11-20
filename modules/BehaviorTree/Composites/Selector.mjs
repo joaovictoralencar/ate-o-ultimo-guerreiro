@@ -1,4 +1,4 @@
-import CompositeNode from './CompositeNode.mjs'
+import CompositeNode from '../Decorators/CompositeNode.mjs'
 export default class Selector extends CompositeNode {
     constructor(){
         super();
