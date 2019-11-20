@@ -1,69 +1,23 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <link rel="stylesheet" href="../styles/main.css" />
-    <script>
-      import {
-        BehaviorTree,
-        Sequence,
-        Task,
-        SUCCESS,
-        FAILURE
-      } from "behaviortree";
-      BehaviorTree.register(
-        "bark",
-        new Task({
-          run: function(dog) {
-            dog.bark();
-            return SUCCESS;
-          }
-        })
-      );
 
-      const tree = new Sequence({
-        nodes: [
-          "bark",
-          new Task({
-            run: function(dog) {
-              dog.randomlyWalk();
-              return SUCCESS;
-            }
-          }),
-          "bark",
-          new Task({
-            run: function(dog) {
-              if (dog.standBesideATree()) {
-                dog.liftALeg();
-                dog.pee();
-                return SUCCESS;
-              } else {
-                return FAILURE;
-              }
-            }
-          })
-        ]
-      });
-      const dog = new Dog(/*...*/); // the nasty details of a dog are omitted
+<head>
+  <link rel="stylesheet" href="../styles/main.css" />
+  <script type="module" src="../js/BehaviorTree.js">
+  </script>
+  <style></style>
+</head>
 
-      const bTree = new BehaviorTree({
-        tree: tree,
-        blackboard: dog
-      });
-
-      // The "game" loop:
-      setInterval(function() {
-        bTree.step();
-      }, 1000 / 60);
-    </script>
-    <style></style>
-  </head>
-  <body>
-    <div id="main">
-      <div>
-        <button><a href="../index.html">Voltar</a></button>
-        <div id="title"><h1>Behavior Tree Example</h1></div>
+<body>
+  <div id="main">
+    <div>
+      <button><a href="../index.html">Voltar</a></button>
+      <div id="title">
+        <h1>Behavior Tree Example</h1>
       </div>
-      <div id="game" class="exemplo">aaaaaaaaaaaaaaaaa</div>
     </div>
-  </body>
+    <div id="game" class="exemplo">aaaaaaaaaaaaaaaaa</div>
+  </div>
+</body>
+
 </html>
