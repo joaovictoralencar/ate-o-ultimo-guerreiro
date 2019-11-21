@@ -269,23 +269,3 @@ function checkCollision(x, y) {
     }
     return tile.properties.collide == true;
 };
-
- function handleClick (pointer) {
-    var x = Game.camera.scrollX + pointer.x;
-    var y = Game.camera.scrollY + pointer.y;
-    var toX = Math.floor(x / 32);
-    var toY = Math.floor(y / 32);
-    var fromX = Math.floor(Game.player.x / 32);
-    var fromY = Math.floor(Game.player.y / 32);
-    console.log('going from (' + fromX + ',' + fromY + ') to (' + toX + ',' + toY + ')');
-
-    Game.finder.findPath(fromX, fromY, toX, toY, function (path) {
-        if (path === null) {
-            console.warn("Path was not found.");
-        } else {
-            console.log(path);
-            Game.moveCharacter(path);
-        }
-    });
-    Game.finder.calculate(); // don't forget, otherwise nothing happens
-};
