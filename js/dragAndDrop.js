@@ -22,6 +22,8 @@ var map;
 var marker;
 //propriedades dos tiles
 var properties; 
+//instancia do finder do A*
+var finderInstanceId;
 
 function preload() {
     this.load.image("assassin", "../img/assassin.png");
@@ -116,6 +118,7 @@ function create() {
         p.setInteractive({
             useHandCursor: true
         });
+		p.flipX = true;
     });
     //Adiciona personagens no campo on click 
     //personagens dos times
@@ -143,13 +146,16 @@ function create() {
                         draggable: true,
                         useHandCursor: true
                     }));
+			if(time == 2) {
+				personagens[novoPersonagemIndex - 1].flipX = true;
+			}
             dragPersonagem(novoPersonagemIndex - 1, time);
             p_idx[time - 1] += 1;
         }
     }
     //configura as propriedades do drag and drop
     function dragPersonagem(index, time) {
-        personagens[index].tint = time == 2 ? 0xdd0000 : 0xffffff;
+        personagens[index].tint = time == 2 ? 0xff8888 : 0xffffff;
         //listener para drag
         personagens[index].on("drag", function (pointer, dragX, dragY) {
             //arredonda para o tile mais proximo
@@ -167,7 +173,6 @@ function create() {
             });
             if (!overlap && snapY <= 528) {
                 this.setAlpha(1);
-                console.log(pointerTileX + " " + pointerTileY);
                 if (!checkCollision(pointerTileX, pointerTileY)) {
                     if (time == 1 && pointerTileX > 0 && pointerTileX < 10) {
                         this.x = snapX;
@@ -199,14 +204,18 @@ function create() {
     // Handles the clicks on the map to make the character move
     this.input.on('pointerup', function(pointer){
         if(personagens[0] != undefined){
+			if(finderInstanceId != undefined ||finderInstanceId != null){
+				finder.cancelPath(finderInstanceId);
+			}
+			
             //arredonda para o tile mais proximo
             var toX = map.worldToTileX(pointer.x);
             var toY = map.worldToTileY(pointer.y);
 
             var fromX = map.worldToTileY(personagens[0].x);
             var fromY = map.worldToTileY(personagens[0].y);
-        
-            finder.findPath(fromX, fromY, toX, toY, function (path) {          
+			
+            finderInstanceId = finder.findPath(fromX, fromY, toX, toY, function (path) {          
                 if (path === null) {
                     console.warn("Path was not found.");
                 } else {
