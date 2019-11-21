@@ -13,33 +13,80 @@ var config = {
     }
 };
 var game = new Phaser.Game(config);
-var logo;
+
+//vetor de personagens
+var personagens = [];
+//tilemap
 var map;
+//marcador do tile
+var marker;
+//propriedades dos tiles
+var properties; 
 
 function preload() {
     this.load.image("assassin", "../img/assassin.png");
     this.load.image("archer", "../img/archer.png");
     this.load.image("warrior", "../img/warrior.png");
     this.load.image("mage", "../img/mage.png");
-    this.load.image("tiles", "../img/gridtiles.png");
+    this.load.image("tileset", "../img/gridtiles.png");
+    this.load.tilemapTiledJSON('map', '../img/map.json');
     this.load.image("car", "../img/car90.png");
 }
 
 function create() {
-    //this.add.image(400, 300, 'sky');
-    //cria 32 arrays de 32 com o valor 0
+
+    var scene = this;
+
     //define o a distribuicao de tiles no mapa
     const level = new Array(16).fill(new Array(20).fill(0));
     //cria o mapa a partir de 'level' e define o tamanho em px de cada tile
-    map = this.make.tilemap({
-        data: level,
-        tileWidth: 32,
-        tileHeight: 32
-    });
+    map = this.make.tilemap({ key: 'map' });
     //cria o o tileset a partir de uma imagem
-    var tileset = map.addTilesetImage("tiles");
+    var tiles = map.addTilesetImage('tiles', 'tileset');
     //cria um objeto layer para renderizar os tiles
-    var layer = map.createStaticLayer(0, tileset, 0, 0);
+    var layer = map.createStaticLayer(0, tiles, 0, 0);
+
+    // Marker that will follow the mouse
+    marker = this.add.graphics();
+    marker.lineStyle(3, 0xffffff, 1);
+    marker.strokeRect(0, 0, map.tileWidth, map.tileHeight);
+
+    // ### Pathfinding stuff ###
+    // Initializing the pathfinder
+    this.finder = new EasyStar.js();
+    var finder = this.finder;//para evitar problemas com this
+
+    // We create the 2D array representing all the tiles of our map
+    var grid = [];
+    for (var y = 0; y < map.height; y++) {
+        var col = [];
+        for (var x = 0; x < map.width; x++) {
+            // In each cell we store the ID of the tile, which corresponds
+            // to its index in the tileset of the map ("ID" field in Tiled)
+            col.push(getTileID(x, y));
+        }
+        grid.push(col);
+    }
+    finder.setGrid(grid);
+
+    var tileset = map.tilesets[0];
+    properties = tileset.tileProperties;
+    var acceptableTiles = [];
+    
+    // We need to list all the tile IDs that can be walked on. Let's iterate over all of them
+    // and see what properties have been entered in Tiled.
+    for (var i = tileset.firstgid - 1; i < tiles.total; i++) { // firstgid and total are fields from Tiled that indicate the range of IDs that the tiles can take in that tileset
+        if (!properties.hasOwnProperty(i)) {
+            // If there is no property indicated at all, it means it's a walkable tile
+            acceptableTiles.push(i + 1);
+            continue;
+        }
+        if (!properties[i].collide) acceptableTiles.push(i + 1);
+        if (properties[i].cost) this.finder.setTileCost(i + 1, properties[i].cost); // If there is a cost attached to the tile, let's register it
+    }
+    finder.setAcceptableTiles(acceptableTiles);
+    
+
     //cria botoes para adicionar os personagens de cada time
     var time1 = [
         this.add.image(80, 592, "warrior"),
@@ -53,8 +100,7 @@ function create() {
         this.add.image(528, 592, "assassin"),
         this.add.image(560, 592, "archer"),
     ];
-    //vetor de personagens
-    var personagens = [];
+
     //numero de personagens em cada time
     var p_idx = [0, 0];
     //maximo de personagens por time
@@ -119,18 +165,28 @@ function create() {
                     overlap = true;
                 }
             });
-            if (!overlap && snapY <= 496) {
+            if (!overlap && snapY <= 528) {
                 this.setAlpha(1);
-                this.x = snapX;
-                this.y = snapY;
-            } else if (!overlap && pointer.y > 500) {
+                console.log(pointerTileX + " " + pointerTileY);
+                if (!checkCollision(pointerTileX, pointerTileY)) {
+                    if (time == 1 && pointerTileX > 0 && pointerTileX < 10) {
+                        this.x = snapX;
+                        this.y = snapY;
+                    }
+                    if (time == 2 && pointerTileX >= 10 && pointerTileX < 20) {
+                        this.x = snapX;
+                        this.y = snapY;
+                    }
+                }
+            } else if (!overlap && pointer.y > 540) {
                 this.setAlpha(0.3);
                 this.x = pointer.x;
                 this.y = pointer.y;
             }
         });
+        //destroi personagens que saem da tela pela parte inferior
         personagens[index].on("pointerup", function (pointer) {
-            if (pointer.y > 500) {
+            if (pointer.y > 550) {
                 this.destroy();
                 personagens[index] = null;
                 p_idx[time - 1]--;
@@ -139,6 +195,88 @@ function create() {
         //faz colisao com as bordas
         personagens[index].setCollideWorldBounds(true);
     }
+
+    // Handles the clicks on the map to make the character move
+    this.input.on('pointerup', function(pointer){
+        if(personagens[0] != undefined){
+            //arredonda para o tile mais proximo
+            var toX = map.worldToTileX(pointer.x);
+            var toY = map.worldToTileY(pointer.y);
+
+            var fromX = map.worldToTileY(personagens[0].x);
+            var fromY = map.worldToTileY(personagens[0].y);
+        
+            finder.findPath(fromX, fromY, toX, toY, function (path) {          
+                if (path === null) {
+                    console.warn("Path was not found.");
+                } else {
+                    console.log(path);
+                    moveCharacter(path,0);
+                }
+            });
+            finder.calculate(); // don't forget, otherwise nothing happens
+        }
+    });
+
+    function moveCharacter(path, index) {
+        // Sets up a list of tweens, one for each tile to walk, that will be chained by the timeline
+        var tweens = [];
+        for (var i = 0; i < path.length - 1; i++) {
+            var ex = path[i + 1].x;
+            var ey = path[i + 1].y;
+            tweens.push({
+                targets: personagens[index],
+                x: { value: ex * map.tileWidth + 16, duration: 200 },
+                y: { value: ey * map.tileHeight + 16, duration: 200 }
+            });
+        }
+
+        scene.tweens.timeline({
+            tweens: tweens
+        });
+    };
 }
 
-function update(time, delta) {}
+function update(time, delta) {
+    var worldPoint = this.input.activePointer.positionToCamera(this.cameras.main);
+
+    // Rounds down to nearest tile
+    var pointerTileX = map.worldToTileX(worldPoint.x);
+    var pointerTileY = map.worldToTileY(worldPoint.y);
+    marker.x = map.tileToWorldX(pointerTileX);
+    marker.y = map.tileToWorldY(pointerTileY);
+    marker.setVisible(!checkCollision(pointerTileX, pointerTileY));
+ }
+
+function getTileID(x, y) {
+    var tile = map.getTileAt(x, y);
+    return tile.index;
+};
+
+function checkCollision(x, y) {
+    var tile = map.getTileAt(x, y);
+    if (properties[tile.index] != undefined) {
+        return properties[tile.index].collide == true;
+    }
+    return tile.properties.collide == true;
+};
+
+ function handleClick (pointer) {
+    var x = Game.camera.scrollX + pointer.x;
+    var y = Game.camera.scrollY + pointer.y;
+    var toX = Math.floor(x / 32);
+    var toY = Math.floor(y / 32);
+    var fromX = Math.floor(Game.player.x / 32);
+    var fromY = Math.floor(Game.player.y / 32);
+    console.log('going from (' + fromX + ',' + fromY + ') to (' + toX + ',' + toY + ')');
+
+    Game.finder.findPath(fromX, fromY, toX, toY, function (path) {
+        if (path === null) {
+            console.warn("Path was not found.");
+        } else {
+            console.log(path);
+            Game.moveCharacter(path);
+        }
+    });
+    Game.finder.calculate(); // don't forget, otherwise nothing happens
+};
