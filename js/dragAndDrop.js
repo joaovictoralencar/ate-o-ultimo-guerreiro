@@ -40,104 +40,159 @@ function create() {
     var tileset = map.addTilesetImage("tiles");
     //cria um objeto layer para renderizar os tiles
     var layer = map.createStaticLayer(0, tileset, 0, 0);
+
+    //cria uma linha que separa os times
+    var line = new Phaser.Geom.Line(320, 0, 320, 640); // cria uma linha
+    var graphics = this.add.graphics({
+        lineStyle: {
+            width: 4,
+            color: 0xaa00aa
+        }
+    }); //cria uma variável gráfico para desenhar coisas na tela
+    graphics.strokeLineShape(line); //adiciona o stroke a linha
+    graphics.lineStyle(2, 0x00aa00); //cor de grossura
+
     //cria botoes para adicionar os personagens de cada time
     var time1 = [
-        this.add.image(80, 592, "warrior"),
-        this.add.image(112, 592, "mage"),
-        this.add.image(144, 592, "assassin"),
-        this.add.image(176, 592, "archer"),
+        //adicionei física ao bonecos da interface da loja para que eles pudessem ser arrastados
+        this.physics.add.image(80, 592, "warrior"),
+        this.physics.add.image(112, 592, "mage"),
+        this.physics.add.image(144, 592, "assassin"),
+        this.physics.add.image(176, 592, "archer"),
     ];
     var time2 = [
-        this.add.image(464, 592, "warrior"),
-        this.add.image(496, 592, "mage"),
-        this.add.image(528, 592, "assassin"),
-        this.add.image(560, 592, "archer"),
+        //adicionei física ao bonecos da interface da loja para que eles pudessem ser arrastados
+        this.physics.add.image(464, 592, "warrior"),
+        this.physics.add.image(496, 592, "mage"),
+        this.physics.add.image(528, 592, "assassin"),
+        this.physics.add.image(560, 592, "archer"),
     ];
     //vetor de personagens
-    var personagens = [];
-    //numero de personagens em cada time
-    var p_idx = [0, 0];
+    var personagenst1 = [];
+    var personagenst2 = [];
+
     //maximo de personagens por time
-    var p_max = 4;
+    var MAX_PERSONAGENS = 4;
     //Deixa as imagens interativas
     time1.forEach(function (p) {
+        p.time = 1;
         p.setInteractive({
-            useHandCursor: true
+            useHandCursor: true,
+            draggable: true //deixa o personagens do time 1 da loja draggables
+        });
+        p.on("pointerdown", function () {
+            dragPersonagem(this, p)
         });
     });
     //Deixa as imagens interativas
     time2.forEach(function (p) {
+        p.time = 2;
         p.setInteractive({
-            useHandCursor: true
+            useHandCursor: true,
+            draggable: true //deixa o personagens do time 2 da loja draggables
+        });
+        p.on("pointerdown", function () {
+            dragPersonagem(this, p);
         });
     });
-    //Adiciona personagens no campo on click 
-    //personagens dos times
-    var p_times = ["warrior", "mage", "assassin", "archer"];
-    //adicionar em time 1
-    p_times.forEach(function (nome, idx) {
-        time1[idx].on("pointerdown", function () {
-            addPersonagem(nome, this, 1);
-        });
-    });
-    //adicionar em time 2
-    p_times.forEach(function (nome, idx) {
-        time2[idx].on("pointerdown", function () {
-            addPersonagem(nome, this, 2);
-        });
-    });
-    //adiciona personagem. Recebe nome da imagem e contexto(this) e o time
-    function addPersonagem(role, ctx, time) {
-        if (p_idx[time - 1] < p_max) {
-            //adiciona fisica e determina item como draggable
-            var novoPersonagemIndex =
-                personagens.push(ctx.scene.physics.add
-                    .image(time == 1 ? 16 : 624, 16 + (p_idx[time - 1] * 32), role)
-                    .setInteractive({
-                        draggable: true,
-                        useHandCursor: true
-                    }));
-            dragPersonagem(novoPersonagemIndex - 1, time);
-            p_idx[time - 1] += 1;
-        }
-    }
     //configura as propriedades do drag and drop
-    function dragPersonagem(index, time) {
-        personagens[index].tint = time == 2 ? 0xdd0000 : 0xffffff;
-        //listener para drag
-        personagens[index].on("drag", function (pointer, dragX, dragY) {
-            //arredonda para o tile mais proximo
-            var pointerTileX = map.worldToTileX(pointer.x);
-            var pointerTileY = map.worldToTileY(pointer.y);
-            //faz o snap para as coordenadas do tile, transformando para coordenadas de mundo
-            var snapX = map.tileToWorldX(pointerTileX) + 16;
-            var snapY = map.tileToWorldY(pointerTileY) + 16;
-            var overlap = false;
-            //verifica sobreposicao
-            personagens.forEach((p, idx) => {
-                if (p != null && snapX == p.x && snapY == p.y) {
-                    overlap = true;
-                }
+    function dragPersonagem(contexto, person) {
+        // adiciona um personagem na loja para ficar no lugar dele
+        if (person.y > 500) {
+            var novoPersonLoja = contexto.scene.physics.add.image(person.x, person.y, person.texture.key, ).setInteractive({
+                useHandCursor: true,
+                draggable: true //deixa o novo personagem da loja draggable
             });
-            if (!overlap && snapY <= 496) {
+            novoPersonLoja.time = person.time;
+            novoPersonLoja.on("pointerdown", function () {
+                dragPersonagem(this, novoPersonLoja)
+            });
+
+        }
+        // se o personagem for do time 2, já pinta ele, se não, vai normal
+        person.tint = person.time == 2 ? 0xdd0000 : 0xffffff;
+
+        //o que acontece quando o personagem é movido
+        person.on("drag", function (pointer, dragX, dragY) {
+            var canPlace = canPlacePersonOnBoard(pointer, this)
+            var snapX = getSnapX(pointer)
+            var snapY = getSnapY(pointer)
+            // Se não tiver em cima de outro personagem, for colocando dentro da área do tabuleiro e o número de personagens for menor que o máximo
+            if (canPlace) {
                 this.setAlpha(1);
                 this.x = snapX;
                 this.y = snapY;
-            } else if (!overlap && pointer.y > 500) {
+            } else if (!canPlace && pointer.y > 515) {
                 this.setAlpha(0.3);
                 this.x = pointer.x;
                 this.y = pointer.y;
             }
         });
-        personagens[index].on("pointerup", function (pointer) {
+
+        person.on("pointerup", function (pointer) {
             if (pointer.y > 500) {
                 this.destroy();
-                personagens[index] = null;
-                p_idx[time - 1]--;
+                personagenst1 = personagenst1.filter(e => {
+                    return e != this
+                })
+                personagenst2 = personagenst2.filter(e => {
+                    return e != this
+                })
+            } else {
+                if (canPlacePersonOnBoard(pointer, this)) {
+                    if (this.time === 1) personagenst1.push(person)
+                    else personagenst2.push(person)
+                }
             }
         });
         //faz colisao com as bordas
-        personagens[index].setCollideWorldBounds(true);
+        person.setCollideWorldBounds(true);
+    }
+
+    function canPlacePersonOnBoard(pointer, person) {
+        //faz o snap para as coordenadas do tile, transformando para coordenadas de mundo
+        var snapX = getSnapX(pointer)
+        var snapY = getSnapY(pointer)
+        var overlap = false;
+        var numPerson = 0;
+        //verifica sobreposicao
+        if (person.time === 1) {
+            numPerson = personagenst1.length; //checa quantos personagens o jogador tem
+            personagenst1.forEach(p => {
+                if (p != null && snapX == p.x && snapY == p.y) {
+                    overlap = true;
+                }
+            });
+        } else if (person.time === 2) {
+            numPerson = personagenst2.length; //checa quantos personagens o jogador tem
+            personagenst2.forEach(p => {
+                if (p != null && snapX == p.x && snapY == p.y) {
+                    overlap = true;
+                }
+            });
+        }
+        console.log(snapY)
+        if (!overlap && snapY <= 496 && numPerson < MAX_PERSONAGENS) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function getSnapX(pointer) {
+        //arredonda para o tile mais proximo
+        var pointerTileX = map.worldToTileX(pointer.x);
+        //faz o snap para as coordenadas do tile, transformando para coordenadas de mundo
+        var snapX = map.tileToWorldX(pointerTileX) + 16;
+        return snapX
+    }
+
+    function getSnapY(pointer) {
+        //arredonda para o tile mais proximo
+        var pointerTileY = map.worldToTileY(pointer.y);
+        //faz o snap para as coordenadas do tile, transformando para coordenadas de mundo
+        var snapY = map.tileToWorldY(pointerTileY) + 16;
+        return snapY
     }
 }
 
