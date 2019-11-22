@@ -171,7 +171,6 @@ function create() {
                 }
             });
         }
-        console.log(snapY)
         if (!overlap && snapY <= 496 && numPerson < MAX_PERSONAGENS) {
             return true;
         } else {
