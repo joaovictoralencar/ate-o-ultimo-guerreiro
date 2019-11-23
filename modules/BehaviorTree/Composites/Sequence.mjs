@@ -1,16 +1,17 @@
-import CompositeNode from '../Decorators/CompositeNode.mjs'
+import CompositeNode from './CompositeNode.mjs'
+import status from '../consts/consts.mjs'
+
 export default class Sequence extends CompositeNode {
-    constructor(){
+    constructor() {
         super();
     }
-    run (){
-        this.getChildren().forEach(child => {
-            if (!child.run()){
-                console.log("Sequence failed")
-                return false
-            }
-        });
-        console.log("Sequence succeeded")
-        return true
+    update() {
+        let s = status.SUCCESS;
+        let children = this.getChildren();
+        for (let c = 0; c < children.length; c++) {
+            s = children[c].tick();
+            if (s !== status.SUCCESS) return s
+        }
+        return s
     }
 };

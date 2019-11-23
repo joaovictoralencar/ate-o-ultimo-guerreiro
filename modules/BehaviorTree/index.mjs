@@ -5,7 +5,7 @@ from './Node.mjs'
 export {
     default as CompositeNode
 }
-from './Decorators/CompositeNode.mjs'
+from './Composites/CompositeNode.mjs'
 export {
     default as DecoratorNode
 }
@@ -19,18 +19,46 @@ export {
 }
 from './Composites/Sequence.mjs'
 export {
+    default as RepeaterDecorator
+}
+from './Decorators/RepeaterDecorator.mjs'
+export {
     default as Root
 }
 from './Decorators/Root.mjs'
 export {
+    default as ActiveSelector
+}
+from './Composites/ActiveSelector.mjs'
+export {
+    default as Filter
+}
+from './Composites/Filter.mjs'
+export {
+    default as Monitor
+}
+from './Composites/Monitor.mjs'
+export {
+    default as Parallel
+}
+from './Composites/Parallel.mjs'
+export {
     default as Move
 }
-from './Move.mjs'
+from './Actions/Move.mjs'
 export {
     default as Attack
 }
-from './Attack.mjs'
+from './Actions/Attack.mjs'
 export {
     default as CheckIfTargetIsInRange
 }
-from './CheckIfTargetIsInRange.mjs'
+from './Actions/CheckIfTargetIsInRange.mjs'
+export {
+    default as status
+}
+from './consts/consts.mjs'
+export {
+    default as policy
+}
+from './consts/consts.mjs'

@@ -1,12 +1,14 @@
-import Node from './Node.mjs'
+import Node from '../Node.mjs'
+import status from '../consts/consts.mjs'
+
 export default class Move extends Node
 {
     constructor(warrior){
         super();
         this.warrior = warrior;
     }
-    run(){
+    update(){
         this.warrior.move();
-        return true;
+        return status.SUCCESS;
     }
 };

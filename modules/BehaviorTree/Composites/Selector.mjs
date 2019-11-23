@@ -1,16 +1,15 @@
-import CompositeNode from '../Decorators/CompositeNode.mjs'
+import CompositeNode from './CompositeNode.mjs'
 export default class Selector extends CompositeNode {
-    constructor(){
+    constructor() {
         super();
     }
-    run (){
-        this.getChildren.forEach(child => {
-            if (child.run()){
-                console.log("Selector succeeded")
-                return true
-            }
-        });
-        console.log("Selector failed")
-        return false
+    update() {
+        let children = this.getChildren();
+        let s = status.FAILURE;
+        for (let c = 0; c < children.length; c++) {
+            let s = children[c].tick();
+            if (s !== status.FAILURE) return s
+        }
+        return s
     }
 };
