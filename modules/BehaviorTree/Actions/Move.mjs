@@ -1,5 +1,5 @@
 import Node from '../Node.mjs'
-import status from '../consts/consts.mjs'
+import { status }  from '../consts/consts.mjs'
 
 export default class Move extends Node
 {

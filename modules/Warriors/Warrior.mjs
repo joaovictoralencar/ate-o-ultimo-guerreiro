@@ -1,12 +1,19 @@
 export default class Warrior {
-    constructor(){
-        let _id = 0;
+    constructor(id, positionX, positionY) {
+        let _id = id;
         let _name = "Joe";
         let _type = "Guerreiro";
         let _life = 20;
-        let _velocity = 1;
+        let _velocity = 2;
         let _physicalDamage = 2;
         let _magicDamage = 0;
+        let _position = {
+            x: positionX,
+            y: positionY
+        }
+        let _range = 1;
+        let _target;
+
         this.getId = () => _id;
         this.setId = (id) => {
             _id = id
@@ -39,11 +46,24 @@ export default class Warrior {
         this.setMagicDamage = (magicDamage) => {
             _magicDamage = magicDamage
         }
+        this.getPosition = () => _position;
+        this.setPosition = (position) => {
+            _position = position
+        }
+        this.getRange = () => _range;
+        this.setRange = (range) => {
+            _range = range
+        }
+        this.getTarget = () => _target;
+        this.setTarget = (target) => {
+            _target = target
+        }
     }
-    move(){
-        console.log(this.getName() + "("+this.getId()+")["+this.getType()+"] is moving")
+    move() {
+        console.log(this.getName() + "(" + this.getId() + ")[" + this.getType() + "] is moving")
+        this.getPosition().x+=this.getVelocity();
     }
-    attack(){
-        console.log(this.getName() + "("+this.getId()+")["+this.getType()+"] is attacking")
+    attack() {
+        console.log(this.getName() + "(" + this.getId() + ")[" + this.getType() + "] is attacking")
     }
 }

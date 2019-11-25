@@ -1,14 +1,14 @@
 import Parallel from './Parallel.mjs'
 
 export default class Monitor extends Parallel {
-    constructor() {
-        super();
+    constructor(forSuccess, forFailure) {
+        super(forSuccess, forFailure);
     }
     addCondition(condition) {
         this.addChildInFront(condition);
     }
-    addAction() {
-        this.addChild(condition)
+    addAction(action) {
+        this.addChild(action)
     }
 };
 

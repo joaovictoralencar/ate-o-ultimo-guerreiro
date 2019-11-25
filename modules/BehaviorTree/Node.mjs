@@ -1,22 +1,22 @@
-import nodeStatus from './consts/consts.mjs'
+import { status } from './consts/consts.mjs'
 export default class Node {
     constructor() {
-        let status = nodeStatus.INVALID;
-        this.getStatus = () => status;
+        let _nodeStatus = status.INVALID;
+        this.getStatus = () => _nodeStatus;
         this.setStatus = (newStatus) => {
-            status = newStatus;
+            _nodeStatus = newStatus;
         }
     }
     onInitialize() {
-        console.log('This node started');
     }
     update() {
         return this.getStatus();
     }
     tick() {
-        if (this.getStatus() != status.RUNNING) this.onInitialize();
+        // console.log(this)
+        if (this.getStatus() !== status.RUNNING) this.onInitialize();
         this.setStatus(this.update());
-        if (this.getStatus() != status.RUNNING) this.onTerminate(this.getStatus());
+        if (this.getStatus() !== status.RUNNING) this.onTerminate(this.getStatus());
         return this.getStatus();
     }
     onTerminate(status) {
@@ -30,9 +30,9 @@ export default class Node {
         this.setStatus(status.ABORTED);
     }
     isTerminated() {
-        return this.getStatus() == status.SUCCESS || this.getStatus() == status.FAILURE;
+        return this.getStatus() === status.SUCCESS || this.getStatus() === status.FAILURE;
     }
     isRunning() {
-        return this.getStatus() == status.RUNNING;
+        return this.getStatus() === status.RUNNING;
     }
 }

@@ -7,7 +7,7 @@ export default class Filter extends Sequence {
     addCondition(condition) {
         this.addChildInFront(condition);
     }
-    addAction() {
-        this.addChild(condition)
+    addAction(action) {
+        this.addChild(action)
     }
 };

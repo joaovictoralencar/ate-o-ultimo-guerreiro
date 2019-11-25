@@ -1,4 +1,7 @@
 import CompositeNode from './CompositeNode.mjs'
+import {
+    status
+} from '../consts/consts.mjs'
 export default class Selector extends CompositeNode {
     constructor() {
         super();

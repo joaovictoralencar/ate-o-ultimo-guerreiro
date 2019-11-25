@@ -55,6 +55,10 @@ export {
 }
 from './Actions/CheckIfTargetIsInRange.mjs'
 export {
+    default as CheckIfTargetIsVisible
+}
+from './Actions/CheckIfTargetIsVisible.mjs'
+export {
     default as status
 }
 from './consts/consts.mjs'

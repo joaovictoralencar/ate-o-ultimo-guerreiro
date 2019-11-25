@@ -7,7 +7,7 @@ export const status = {
     INVALID: 'INVALID'
 }
 export const policy = {
-    REQUIRE_ONE: 'RequireOne',
-    REQUIRE_ALL:'RequireAll'
+    REQUIRE_ONE: 'REQUIRE_ONE',
+    REQUIRE_ALL:'REQUIRE_ALL'
 }
 export default { status, policy }
