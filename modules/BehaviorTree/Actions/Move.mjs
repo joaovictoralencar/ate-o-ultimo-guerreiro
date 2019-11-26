@@ -3,12 +3,12 @@ import { status }  from '../consts/consts.mjs'
 
 export default class Move extends Node
 {
-    constructor(warrior){
+    constructor(character){
         super();
-        this.warrior = warrior;
+        this.character = character;
     }
     update(){
-        this.warrior.move();
+        this.character.move();
         return status.SUCCESS;
     }
 };

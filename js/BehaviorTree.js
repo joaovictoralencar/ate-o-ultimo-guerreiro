@@ -1,10 +1,11 @@
 import * as BT from "../modules/BehaviorTree/index.mjs"
 import {
-    Warrior
-} from "../modules/Warriors/index.mjs"
-import {
-    policy
-} from "../modules/BehaviorTree/consts/consts.mjs"
+    Character
+} from "../modules/Characters/index.mjs"
+
+// import {
+//     policy
+// } from "../modules/BehaviorTree/consts/consts.mjs"
 
 document.getElementById("goNext").onclick = tickTurn
 let tick = 0;
@@ -14,8 +15,8 @@ function tickTurn(){
     tick++;
 }
 
-let w1 = new Warrior(1, 0, 0);
-let w2 = new Warrior(2, 2, 0);
+let w1 = new Character(1, 0, 0);
+let w2 = new Character(2, 2, 0);
 let activeSelector1 = new BT.ActiveSelector();
 let sequence1 = new BT.Sequence();
 // let monitor1 = new BT.Monitor(policy.REQUIRE_ONE, policy.REQUIRE_ONE);

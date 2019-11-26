@@ -3,9 +3,9 @@ import Monitor from '../Composites/Monitor.mjs'
 
 export default class CheckIfTargetIsVisible extends Monitor
 {
-    constructor(warrior, target, isVisible){
+    constructor(character, target, isVisible){
         super();
-        this.warrior = warrior;
+        this.character = character;
         this.target = target;
         this.isVisible = isVisible;
     }
@@ -13,7 +13,7 @@ export default class CheckIfTargetIsVisible extends Monitor
         let t = this.target;
         if (t !== undefined && this.isVisible){
             console.log(t.getName() + "(" + t.getId() + ")[" + t.getType() + "] is visible")
-            this.warrior.setTarget(t);
+            this.character.setTarget(t);
             return status.SUCCESS;
         } else {
             console.log("Target is not is visible")

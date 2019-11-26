@@ -3,12 +3,12 @@ import { status }  from '../consts/consts.mjs'
 
 export default class Attack extends Node
 {
-    constructor(warrior){
+    constructor(character){
         super();
-        this.warrior = warrior;
+        this.character = character;
     }
     update(){
-        this.warrior.attack();
+        this.character.attack();
         return status.SUCCESS;
     }
 };

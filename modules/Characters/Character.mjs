@@ -1,18 +1,19 @@
-export default class Warrior {
+export default class Character {
     constructor(id, positionX, positionY) {
         let _id = id;
-        let _name = "Joe";
-        let _type = "Guerreiro";
-        let _life = 20;
-        let _velocity = 2;
-        let _physicalDamage = 2;
-        let _magicDamage = 0;
         let _position = {
             x: positionX,
             y: positionY
         }
+        let _name = "Joe";
+        let _type = "Character";
+        let _life = 20;
+        let _damage = 2;
+        let _velocity = 1;
+        let atkSpeed = 1000; //em ms
         let _range = 1;
         let _target;
+        let _dodgeChange = 0.1;
 
         this.getId = () => _id;
         this.setId = (id) => {
@@ -38,13 +39,9 @@ export default class Warrior {
         this.setVelocity = (velocity) => {
             _velocity = velocity
         }
-        this.getPhysicalDamage = () => _physicalDamage;
-        this.setPhysicalDamage = (physicalDamage) => {
-            _physicalDamage = physicalDamage
-        }
-        this.getMagicDamage = () => _magicDamage;
-        this.setMagicDamage = (magicDamage) => {
-            _magicDamage = magicDamage
+        this.getDamage = () => _damage;
+        this.setDamage = (damage) => {
+            _damage = damage
         }
         this.getPosition = () => _position;
         this.setPosition = (position) => {
@@ -58,12 +55,16 @@ export default class Warrior {
         this.setTarget = (target) => {
             _target = target
         }
+        this.getDogeChange = () => _dodgeChange;
+        this.setDogeChange = (dodgeChange) => {
+            _dodgeChange = dodgeChange
+        }
     }
     move() {
-        console.log(this.getName() + "(" + this.getId() + ")[" + this.getType() + "] is moving")
+        console.log("(" + this.getId() + ")[" + this.getType() + "] is moving")
         this.getPosition().x+=this.getVelocity();
     }
     attack() {
-        console.log(this.getName() + "(" + this.getId() + ")[" + this.getType() + "] is attacking")
+        console.log("(" + this.getId() + ")[" + this.getType() + "] is attacking")
     }
 }
