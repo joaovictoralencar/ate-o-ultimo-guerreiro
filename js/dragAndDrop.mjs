@@ -70,10 +70,14 @@ function create() {
 	//Botoes de pronto para os times
 	Ready.spritet1 = this.add
 		.sprite(256, 592, "readyBtn", 3)
-		.setInteractive({ useHandCursor: true });
+		.setInteractive({
+			useHandCursor: true
+		});
 	Ready.spritet2 = this.add
 		.sprite(384, 592, "readyBtn", 3)
-		.setInteractive({ useHandCursor: true });
+		.setInteractive({
+			useHandCursor: true
+		});
 	setReadyButtonsEvents(scene); //faz o set dos eventos do mouse nos botões
 
 	// ### Pathfinding stuff ###
@@ -127,6 +131,7 @@ function create() {
 	];
 
 	//Deixa as imagens interativas
+	let t1id = 0
 	time1.forEach(function (p) {
 		p.time = 1;
 		p.setInteractive({
@@ -136,8 +141,12 @@ function create() {
 		p.on("pointerdown", function () {
 			if (personagenst1.length < MAX_PERSONAGENS) dragPersonagem(this, p);
 		});
+		p.id = t1id;
+		t1id++;
 	});
+
 	//Deixa as imagens interativas
+	let t2id = 0;
 	time2.forEach(function (p) {
 		p.time = 2;
 		p.setInteractive({
@@ -147,29 +156,24 @@ function create() {
 		p.on("pointerdown", function () {
 			if (personagenst2.length < MAX_PERSONAGENS) dragPersonagem(this, p);
 		});
+		p.id = t2id;
+		t2id++;
 		p.flipX = true;
 	});
 	//configura as propriedades do drag and drop
 	function dragPersonagem(selectedSprite) {
 		// adiciona um personagem na loja para ficar no lugar dele
-		let char;
-		if (selectedSprite.y > 546) {
+		if (isOnStore(selectedSprite)) {
 			var novoPersonLoja = scene.physics.add
-				.image(selectedSprite.x, selectedSprite.y, selectedSprite.texture.key)
+				.image(selectedSprite.x, selectedSprite.y, selectedSprite.texture.key) //deixa igual onde tava que vai ser arrastado
 				.setInteractive({
 					useHandCursor: true,
 					draggable: true //deixa o novo personagem da loja draggable
 				});
-
-			novoPersonLoja.time = selectedSprite.time;
-			if (novoPersonLoja.time === 2) novoPersonLoja.flipX = true;
+			novoPersonLoja.time = selectedSprite.time; //define o time dele
+			if (novoPersonLoja.time === 2) novoPersonLoja.flipX = true; // se for do time dois, flipa
 			novoPersonLoja.on("pointerdown", function () {
-				var numPerson;
-				if (selectedSprite.time === 1) numPerson = personagenst1.length; //checa quantos personagens o jogador tem
-				if (selectedSprite.time === 2) numPerson = personagenst2.length; //checa quantos personagens o jogador tem
-				if (numPerson < MAX_PERSONAGENS) {
-					dragPersonagem(this, novoPersonLoja);
-				}
+				dragPersonagem(this, novoPersonLoja); //adicionar a função draggable
 			});
 		}
 		// se o personagem for do time 2, já pinta ele, se não, vai normal
@@ -184,17 +188,16 @@ function create() {
 			) {
 				return;
 			}
-
 			//arredonda para o tile mais proximo
 			var pointerTileX = map.worldToTileX(pointer.x);
 			var pointerTileY = map.worldToTileY(pointer.y);
-			var canPlace = canPlacePersonOnBoard(pointer, this);
+			var canPlace = canPlacePersonOnTile(pointer, this);
 			var snapX = getSnapX(pointer);
 			var snapY = getSnapY(pointer);
 			// Se não tiver em cima de outro personagem, for colocando dentro da área do tabuleiro e o número de personagens for menor que o máximo
 			if (canPlace) {
 				this.setAlpha(1);
-				if (!checkCollision(pointerTileX, pointerTileY)) {
+				if (!collidesWithSomething(pointerTileX, pointerTileY)) {
 					if (selectedSprite.time == 1 && pointerTileX > 0 && pointerTileX < 10) {
 						this.x = snapX;
 						this.y = snapY;
@@ -204,50 +207,39 @@ function create() {
 						this.y = snapY;
 					}
 				}
-				//this.x = snapX;
-				//this.y = snapY;
-			} else if (!canPlace && pointer.y > 546) {
+			} else if (!canPlace && isOnStore(this)) {
 				this.setAlpha(0.3);
 				this.x = pointer.x;
 				this.y = pointer.y;
 			}
-
-			//adiciona personagem ao vetor
-
-			// if (pointer.y < 546) {
-			// 	if (canPlacePersonOnBoard(pointer, this)) {
-			// 		if (!checkCollision(pointerTileX, pointerTileY)) {
-			// 			if (this.time === 1 && pointerTileX > 0 && pointerTileX < 10) {
-			// 				// let char = createChar(selectedSprite.time, selectedSprite.texture.key)
-			// 				// char.setSprite(selectedSprite);
-			// 				console.log('pode nao1')
-			// 				personagenst1.push(selectedSprite);
-			// 			}
-			// 			if (this.time === 2 && pointerTileX >= 10 && pointerTileX < 20) {
-			// 				// let char = createChar(selectedSprite.time, selectedSprite.texture.key)
-			// 				// char.setSprite(selectedSprite);
-			// 				personagenst2.push(selectedSprite);
-			// 				console.log('pode nao2')
-			// 			}
-			// 		}
-			// 	}
-			// }
 		});
 
 		selectedSprite.on("pointerup", function (pointer) {
-			if (pointer.y >= 546) {
+			if (isOnStore(this)) {
+				if (this.time === 1) {
+					let i;
+					personagenst1.forEach((e, index) => {
+						if (e.getSprite() === this && e.getId() === this.id)
+							i = index;
+					});
+					personagenst1.splice(i, 1)
+					console.log(personagenst1)
+				}
+				else {
+					let i;
+					personagenst2.forEach((e, index) => {
+						if (e.getSprite() === this && e.getId() === this.id) 
+							i = index;
+					});
+					personagenst2.splice(i, 1)
+					console.log('excluir time 2')
+				}
 				this.destroy();
-				personagenst1 = personagenst1.filter(e => {
-					return e != this;
-				});
-				personagenst2 = personagenst2.filter(e => {
-					return e != this;
-				});
 			} else {
-				if (canPlacePersonOnBoard(pointer, this)) {
+				if (canPlacePersonOnTile(pointer, this) && !isOnStore(this)) {
 					var pointerTileX = map.worldToTileX(pointer.x);
 					var pointerTileY = map.worldToTileY(pointer.y);
-					if (!checkCollision(pointerTileX, pointerTileY)) {
+					if (!collidesWithSomething(pointerTileX, pointerTileY)) {
 						if (this.time === 1 && pointerTileX > 0 && pointerTileX < 10) {
 							let char = createChar(this.texture.key, this.time)
 							char.setSprite(this);
@@ -269,7 +261,9 @@ function create() {
 		selectedSprite.setCollideWorldBounds(true);
 	}
 
-	function canPlacePersonOnBoard(pointer, selectedSprite) {
+	function canPlacePersonOnTile(pointer, selectedSprite) {
+		if (selectedSprite.time === 1 && personagenst1.length === MAX_PERSONAGENS) return false
+		if (selectedSprite.time === 2 && personagenst2.length === MAX_PERSONAGENS) return false
 		//faz o snap para as coordenadas do tile, transformando para coordenadas de mundo
 		var snapX = getSnapX(pointer);
 		var snapY = getSnapY(pointer);
@@ -277,6 +271,7 @@ function create() {
 		//verifica sobreposicao
 		if (selectedSprite.time === 1) {
 			personagenst1.forEach(p => {
+				p = p.getSprite();
 				if (p != null && snapX == p.x && snapY == p.y) {
 					overlap = true;
 				}
@@ -288,7 +283,7 @@ function create() {
 				}
 			});
 		}
-		if (!overlap && snapY <= 546) {
+		if (!overlap && isOnStore(selectedSprite) === false) {
 			return true;
 		} else {
 			return false;
@@ -322,8 +317,8 @@ function create() {
 			var toX = map.worldToTileX(pointer.x);
 			var toY = map.worldToTileY(pointer.y);
 
-			var fromX = map.worldToTileY(personagenst1[0].x);
-			var fromY = map.worldToTileY(personagenst1[0].y);
+			var fromX = map.worldToTileY(personagenst1[0].getSprite().x);
+			var fromY = map.worldToTileY(personagenst1[0].getSprite().y);
 
 			finderInstanceId = finder.findPath(fromX, fromY, toX, toY, function (
 				path
@@ -346,7 +341,7 @@ function create() {
 			var ex = path[i + 1].x;
 			var ey = path[i + 1].y;
 			tweens.push({
-				targets: personagenst1[index],
+				targets: personagenst1[index].getSprite(),
 				x: {
 					value: ex * map.tileWidth + 16,
 					duration: 200
@@ -372,7 +367,7 @@ function update(time, delta) {
 	var pointerTileY = map.worldToTileY(worldPoint.y);
 	marker.x = map.tileToWorldX(pointerTileX);
 	marker.y = map.tileToWorldY(pointerTileY);
-	marker.setVisible(!checkCollision(pointerTileX, pointerTileY));
+	marker.setVisible(!collidesWithSomething(pointerTileX, pointerTileY));
 }
 
 function getTileID(x, y) {
@@ -380,7 +375,7 @@ function getTileID(x, y) {
 	return tile.index;
 }
 
-function checkCollision(x, y) {
+function collidesWithSomething(x, y) {
 	var tile = map.getTileAt(x, y);
 	if (properties[tile.index] != undefined) {
 		return properties[tile.index].collide == true;
@@ -425,7 +420,9 @@ function setReadyButtonsEvents(scene) {
 //faz o countdown para começar a batalha
 function startBattle(scene) {
 	var n = 3;
-	var text = scene.add.text(320, 256, n, { font: "64px Arial" });
+	var text = scene.add.text(320, 256, n, {
+		font: "64px Arial"
+	});
 	text.setOrigin(0.5);
 
 	timedEvent = scene.time.addEvent({
@@ -441,7 +438,6 @@ function startBattle(scene) {
 }
 
 function createChar(sprite, time) {
-	console.log(sprite)
 	let id = 0;
 	if (time === 1 && personagenst1.length !== 0) id = personagenst1.length - 1
 	else if (time === 2 && personagenst2.length !== 0) id = personagenst2.length - 1
@@ -457,4 +453,8 @@ function createChar(sprite, time) {
 		default:
 			return new Char.Warrior(id);
 	}
+}
+
+function isOnStore(sprite) {
+	return sprite.y > 546
 }
