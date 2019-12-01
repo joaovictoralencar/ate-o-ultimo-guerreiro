@@ -11,7 +11,9 @@ export default class Character {
         let _range = 1;
         let _target;
         let _dodgeChange = 0.1;
-
+        let _bt;
+        let _path;
+        let _scene;
 
         this.getId = () => _id;
         this.setId = (id) => {
@@ -58,9 +60,45 @@ export default class Character {
             _dodgeChange = dodgeChange
         }
         this.getAtkSpeed = () => _atkSpeed;
+
+        this.getBt = () => _bt;
+        this.setBt = (bt) => {
+            _bt = bt;
+        }
+        this.getPath = () => _path;
+        this.setPath = (path) => {
+            _path = path;
+        }
+        this.getScene = () => _scene;
+        this.setScene = (scene) => {
+            _scene = scene;
+        }
     }
     move() {
-        console.log("(" + this.getId() + ")[" + this.getType() + "] is moving")
+        console.log("(" + this.getId() + ")[" + this.getType() + "] is moving");
+        // Sets up a list of tweens, one for each tile to walk, that will be chained by the timeline
+        var tweens = [];
+        var path = this.getPath();
+        var scene = this.getScene();
+        for (var i = 0; i < path.length - 1; i++) {
+            var ex = path[i + 1].x;
+            var ey = path[i + 1].y;
+            tweens.push({
+                targets: this.getSprite(),
+                x: {
+                    value: ex * 32 + 16,
+                    duration: 200
+                },
+                y: {
+                    value: ey * 32 + 16,
+                    duration: 200
+                }
+            });
+        }
+
+        scene.tweens.timeline({
+            tweens: tweens
+        });
     }
     attack() {
         console.log("(" + this.getId() + ")[" + this.getType() + "] is attacking")

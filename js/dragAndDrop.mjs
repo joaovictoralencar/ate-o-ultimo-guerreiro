@@ -1,3 +1,4 @@
+import * as BT from "../modules/BehaviorTree/index.mjs";
 import * as Char from "../modules/Characters/index.mjs";
 var config = {
 	type: Phaser.AUTO,
@@ -228,7 +229,7 @@ function create() {
 				else {
 					let i;
 					personagenst2.forEach((e, index) => {
-						if (e.getSprite() === this && e.getId() === this.id) 
+						if (e.getSprite() === this && e.getId() === this.id)
 							i = index;
 					});
 					personagenst2.splice(i, 1)
@@ -241,16 +242,25 @@ function create() {
 					var pointerTileY = map.worldToTileY(pointer.y);
 					if (!collidesWithSomething(pointerTileX, pointerTileY)) {
 						if (this.time === 1 && pointerTileX > 0 && pointerTileX < 10) {
-							let char = createChar(this.texture.key, this.time)
+							let char = createChar(this.texture.key, this.time);
 							char.setSprite(this);
+							char.setScene(scene);//seta scene para usar acessa-la dentro de character
+							//cria bt do personage,
+							let sequence = new BT.Sequence();
+							let move = new BT.Move(char);
+							let root = new BT.Root(sequence);
+							sequence.addChild(move);
+							//adiciona bt ao personagem
+							char.setBt(root);
+
 							personagenst1.push(char);
 							console.log(personagenst1)
 						}
-						if (this.time === 2 && pointerTileX >= 10 && pointerTileX < 20) {
-							let char = createChar(this.texture.key, this.time)
-							char.setSprite(selectedSprite);
+						else if (this.time === 2 && pointerTileX >= 10 && pointerTileX < 20) {
+							let char = createChar(this.texture.key, this.time);
+							char.setSprite(this);
 							personagenst2.push(char);
-							console.log(personagenst2)
+							console.log(char);
 						}
 					}
 				}
@@ -308,17 +318,13 @@ function create() {
 
 	// Handles the clicks on the map to make the character move
 	this.input.on("pointerup", function (pointer) {
-		if (personagenst1[0] != undefined) {
-			if (finderInstanceId != undefined || finderInstanceId != null) {
-				finder.cancelPath(finderInstanceId);
-			}
-
+		personagenst1.forEach(function (char) {
 			//arredonda para o tile mais proximo
 			var toX = map.worldToTileX(pointer.x);
 			var toY = map.worldToTileY(pointer.y);
 
-			var fromX = map.worldToTileY(personagenst1[0].getSprite().x);
-			var fromY = map.worldToTileY(personagenst1[0].getSprite().y);
+			var fromX = map.worldToTileY(char.getSprite().x);
+			var fromY = map.worldToTileY(char.getSprite().y);
 
 			finderInstanceId = finder.findPath(fromX, fromY, toX, toY, function (
 				path
@@ -326,37 +332,18 @@ function create() {
 				if (path === null) {
 					console.warn("Path was not found.");
 				} else {
-					console.log(path);
-					moveCharacter(path, 0);
+					//console.log(path);
+					//seta path e move personagens ativando a bt
+					if (Ready.time1) {
+						char.setPath(path);
+						var root = char.getBt();
+						root.tick();
+					}
 				}
 			});
 			finder.calculate(); // don't forget, otherwise nothing happens
-		}
-	});
-
-	function moveCharacter(path, index) {
-		// Sets up a list of tweens, one for each tile to walk, that will be chained by the timeline
-		var tweens = [];
-		for (var i = 0; i < path.length - 1; i++) {
-			var ex = path[i + 1].x;
-			var ey = path[i + 1].y;
-			tweens.push({
-				targets: personagenst1[index].getSprite(),
-				x: {
-					value: ex * map.tileWidth + 16,
-					duration: 200
-				},
-				y: {
-					value: ey * map.tileHeight + 16,
-					duration: 200
-				}
-			});
-		}
-
-		scene.tweens.timeline({
-			tweens: tweens
 		});
-	}
+	});
 }
 
 function update(time, delta) {
@@ -425,7 +412,7 @@ function startBattle(scene) {
 	});
 	text.setOrigin(0.5);
 
-	timedEvent = scene.time.addEvent({
+	scene.time.addEvent({
 		delay: 1000,
 		callback: function () {
 			n -= 1;
@@ -439,8 +426,9 @@ function startBattle(scene) {
 
 function createChar(sprite, time) {
 	let id = 0;
-	if (time === 1 && personagenst1.length !== 0) id = personagenst1.length - 1
-	else if (time === 2 && personagenst2.length !== 0) id = personagenst2.length - 1
+	if (time === 1 && personagenst1.length !== 0) { id = personagenst1.length - 1; }
+	else if (time === 2 && personagenst2.length !== 0) { id = personagenst2.length - 1; }
+
 	switch (sprite) {
 		case 'warrior':
 			return new Char.Warrior(id);
