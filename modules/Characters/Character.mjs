@@ -9,11 +9,13 @@ export default class Character {
         let _velocity = 1;
         let _atkSpeed = 1000; //em ms
         let _range = 1;
-        let _target;
+        let _target = null;
         let _dodgeChange = 0.1;
         let _bt;
-        let _path;
+        let _path = null;
         let _scene;
+        let _map;
+        let _finder;
 
         this.getId = () => _id;
         this.setId = (id) => {
@@ -73,6 +75,14 @@ export default class Character {
         this.setScene = (scene) => {
             _scene = scene;
         }
+        this.getMap = () => _map;
+        this.setMap = (map) => {
+            _map = map;
+        }
+        this.getFinder = () => _finder;
+        this.setFinder = (finder) => {
+            _finder = finder;
+        }
     }
     move() {
         console.log("(" + this.getId() + ")[" + this.getType() + "] is moving");
@@ -102,5 +112,56 @@ export default class Character {
     }
     attack() {
         console.log("(" + this.getId() + ")[" + this.getType() + "] is attacking")
+    }
+    getClosestEnemy(enemies) {
+        if (enemies === null) {
+            return false;
+        }
+
+        var char = this;
+        var target = null;
+
+        enemies.forEach(function (enemy) {
+            if (target === null) { target = enemy; }
+            if (char.getCharacterDistance(target) < char.getCharacterDistance(enemy)) {
+                target = enemy;
+            }
+        });
+        this.setTarget(target);
+        this.findPath();
+        return true;
+    }
+    getCharacterDistance(char) {
+        var x = Math.abs(this.getSprite().x - char.getSprite().x);
+        var y = Math.abs(this.getSprite().y - char.getSprite().y);
+        return (x * x + y * y);
+    }
+    findPath() {
+        var map = this.getMap();
+        var finder = this.getFinder();
+        var char = this;
+        var toX;
+        var toY;
+        //Caso nao tenha target, fica parado (recebendo como destino a propria posicao)
+        if (char.getTarget() === null) {
+            toX = map.worldToTileX(char.getSprite().x);
+            toY = map.worldToTileX(char.getSprite().y);
+        }
+        else {
+            toX = map.worldToTileX(char.getTarget().getSprite().x);
+            toY = map.worldToTileX(char.getTarget().getSprite().y);
+        }
+        var fromX = map.worldToTileY(char.getSprite().x);
+        var fromY = map.worldToTileY(char.getSprite().y);
+
+        finder.findPath(fromX, fromY, toX, toY, function (path) {
+            if (path === null) {
+                console.warn("Path was not found.");
+            } else {
+                //seta path
+                char.setPath(path);
+            }
+        });
+        finder.calculate(); // don't forget, otherwise nothing happens
     }
 }

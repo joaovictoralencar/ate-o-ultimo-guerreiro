@@ -71,7 +71,7 @@ var EasyStar =
 			EasyStar.js = function () {
 				var STRAIGHT_COST = 1.0;
 				var DIAGONAL_COST = 1.4;
-				var syncEnabled = false;
+				var syncEnabled = true;
 				var pointsToAvoid = {};
 				var collisionGrid;
 				var costMap = {};

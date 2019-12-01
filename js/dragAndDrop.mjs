@@ -25,6 +25,7 @@ var marker;
 var properties;
 //instancia do finder do A*
 var finderInstanceId;
+var finder;
 //vetor de personagens
 var personagenst1 = [];
 var personagenst2 = [];
@@ -84,7 +85,7 @@ function create() {
 	// ### Pathfinding stuff ###
 	// Initializing the pathfinder
 	this.finder = new EasyStar.js();
-	var finder = this.finder; //para evitar problemas com this
+	finder = this.finder; //para evitar problemas com this
 
 	// We create the 2D array representing all the tiles of our map
 	var grid = [];
@@ -243,15 +244,11 @@ function create() {
 					if (!collidesWithSomething(pointerTileX, pointerTileY)) {
 						if (this.time === 1 && pointerTileX > 0 && pointerTileX < 10) {
 							let char = createChar(this.texture.key, this.time);
+							//seta contexto do phaser e do a* para acessar dentro de character
 							char.setSprite(this);
-							char.setScene(scene);//seta scene para usar acessa-la dentro de character
-							//cria bt do personage,
-							let sequence = new BT.Sequence();
-							let move = new BT.Move(char);
-							let root = new BT.Root(sequence);
-							sequence.addChild(move);
-							//adiciona bt ao personagem
-							char.setBt(root);
+							char.setScene(scene);
+							char.setMap(map);
+							char.setFinder(finder);
 
 							personagenst1.push(char);
 							console.log(personagenst1)
@@ -259,8 +256,9 @@ function create() {
 						else if (this.time === 2 && pointerTileX >= 10 && pointerTileX < 20) {
 							let char = createChar(this.texture.key, this.time);
 							char.setSprite(this);
+							char.setScene(scene);//seta scene para usar acessa-la dentro de character
 							personagenst2.push(char);
-							console.log(char);
+							console.log(personagenst1);
 						}
 					}
 				}
@@ -316,34 +314,6 @@ function create() {
 		return snapY;
 	}
 
-	// Handles the clicks on the map to make the character move
-	this.input.on("pointerup", function (pointer) {
-		personagenst1.forEach(function (char) {
-			//arredonda para o tile mais proximo
-			var toX = map.worldToTileX(pointer.x);
-			var toY = map.worldToTileY(pointer.y);
-
-			var fromX = map.worldToTileY(char.getSprite().x);
-			var fromY = map.worldToTileY(char.getSprite().y);
-
-			finderInstanceId = finder.findPath(fromX, fromY, toX, toY, function (
-				path
-			) {
-				if (path === null) {
-					console.warn("Path was not found.");
-				} else {
-					//console.log(path);
-					//seta path e move personagens ativando a bt
-					if (Ready.time1) {
-						char.setPath(path);
-						var root = char.getBt();
-						root.tick();
-					}
-				}
-			});
-			finder.calculate(); // don't forget, otherwise nothing happens
-		});
-	});
 }
 
 function update(time, delta) {
@@ -422,6 +392,11 @@ function startBattle(scene) {
 		callbackScope: scene,
 		repeat: 3
 	});
+
+	//cria e executa bts
+	criaBts(personagenst1, personagenst1);
+	executaBts(personagenst1);
+
 }
 
 function createChar(sprite, time) {
@@ -445,4 +420,27 @@ function createChar(sprite, time) {
 
 function isOnStore(sprite) {
 	return sprite.y > 546
+}
+
+function criaBts(personagens, enemies) {
+	personagens.forEach(function (char) {
+		criaWarriorBt(char, enemies);
+	});
+}
+
+function executaBts(personagens) {
+	personagens.forEach(function (char) {
+		var root = char.getBt();
+		root.tick();
+	});
+}
+
+function criaWarriorBt(char, enemies) {
+	let sequence = new BT.Sequence();
+	let getClosestEnemy = new BT.GetClosestEnemy(char, enemies);
+	let move = new BT.Move(char);
+	let root = new BT.Root(sequence);
+	sequence.addChild(getClosestEnemy);
+	sequence.addChild(move);
+	char.setBt(root);
 }
