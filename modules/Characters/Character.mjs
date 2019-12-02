@@ -85,12 +85,30 @@ export default class Character {
         }
     }
     move() {
-        console.log("(" + this.getId() + ")[" + this.getType() + "] is moving");
+        var char = this;
+        //detecta se ja existe alguma percurso sendo feito, 
+        //entao cancela e chama a funcao novamente para o novo percurso
+        if (char.movement && char.movement.isPlaying()) {
+            const progress = char.movement.elapsed;
+            const currentTweenIndex = char.movement.data.findIndex(tween => {
+                return (tween.calculatedOffset + tween.duration) > progress;
+            });
+
+            const currentTween = char.movement.data[currentTweenIndex];
+
+            if (currentTween) {
+                currentTween.setCallback('onComplete', () => {
+                    char.movement.destroy();
+                    char.move();
+                }, []);
+            }
+        }
+        //console.log("(" + this.getId() + ")[" + this.getType() + "] is moving");
         // Sets up a list of tweens, one for each tile to walk, that will be chained by the timeline
         var tweens = [];
         var path = this.getPath();
         var scene = this.getScene();
-        for (var i = 0; i < path.length - 1; i++) {
+        for (var i = 0; i < path.length - 2; i++) {
             var ex = path[i + 1].x;
             var ey = path[i + 1].y;
             tweens.push({
@@ -105,13 +123,20 @@ export default class Character {
                 }
             });
         }
-
-        scene.tweens.timeline({
+        char.movement = scene.tweens.timeline({
             tweens: tweens
         });
     }
     attack() {
-        console.log("(" + this.getId() + ")[" + this.getType() + "] is attacking")
+        //console.log("(" + this.getId() + ")[" + this.getType() + "] is attacking");
+        var char = this;
+        var target = this.getTarget();
+        if (target.getLife() > 0) {
+            target.setLife(target.getLife() - this.getDamage() / 10);
+        } else {
+            return false;
+        }
+        return true;
     }
     getClosestEnemy(enemies) {
         if (enemies === null) {
@@ -123,10 +148,15 @@ export default class Character {
 
         enemies.forEach(function (enemy) {
             if (target === null) { target = enemy; }
-            if (char.getCharacterDistance(target) < char.getCharacterDistance(enemy)) {
+            if (char.getCharacterDistance(target) > char.getCharacterDistance(enemy)
+                || target.getLife() <= 0) {
                 target = enemy;
             }
         });
+        console.log(target.getLife());
+        if (target.getLife() <= 0) {
+            return false;
+        }
         this.setTarget(target);
         this.findPath();
         return true;
@@ -151,6 +181,10 @@ export default class Character {
             toX = map.worldToTileX(char.getTarget().getSprite().x);
             toY = map.worldToTileX(char.getTarget().getSprite().y);
         }
+
+        char.getTarget().prevX = char.getTarget().getSprite().x;
+        char.getTarget().prevY = char.getTarget().getSprite().y;
+
         var fromX = map.worldToTileY(char.getSprite().x);
         var fromY = map.worldToTileY(char.getSprite().y);
 

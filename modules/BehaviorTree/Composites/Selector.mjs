@@ -11,7 +11,7 @@ export default class Selector extends CompositeNode {
         let s = status.FAILURE;
         for (let c = 0; c < children.length; c++) {
             let s = children[c].tick();
-            if (s !== status.FAILURE) return s
+            if (s !== status.FAILURE) return s;
         }
         return s
     }

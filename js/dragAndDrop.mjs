@@ -170,7 +170,7 @@ function create() {
 	//configura as propriedades do drag and drop
 	function dragPersonagem(selectedSprite) {
 		// adiciona um personagem na loja para ficar no lugar dele
-		selectedSprite.on("pointerdown", function(){
+		selectedSprite.on("pointerdown", function () {
 			if (isOnStore(selectedSprite) && selectedSprite.isOnBoard === false) {
 				var novoPersonLoja = scene.physics.add
 					.image(selectedSprite.x, selectedSprite.y, selectedSprite.texture.key) //deixa igual onde tava que vai ser arrastado
@@ -205,7 +205,7 @@ function create() {
 			if (canPlace) {
 				this.setAlpha(1);
 				if (!collidesWithSomething(pointerTileX, pointerTileY)) {
-					if (selectedSprite.time == 1 && pointerTileX > 0 && pointerTileX < 10) {
+					if (selectedSprite.time == 1 && pointerTileX >= 0 && pointerTileX < 10) {
 						this.x = snapX;
 						this.y = snapY;
 					}
@@ -257,7 +257,7 @@ function create() {
 					var pointerTileX = map.worldToTileX(pointer.x);
 					var pointerTileY = map.worldToTileY(pointer.y);
 					if (!collidesWithSomething(pointerTileX, pointerTileY)) {
-						if (this.time === 1 && pointerTileX > 0 && pointerTileX < 10) {
+						if (this.time === 1 && pointerTileX >= 0 && pointerTileX < 10) {
 							this.isOnBoard = true;
 							let char = createChar(this.texture.key, this.time);
 							//seta contexto do phaser e do a* para acessar dentro de character
@@ -265,14 +265,20 @@ function create() {
 							char.setScene(scene);
 							char.setMap(map);
 							char.setFinder(finder);
-
+							char.text = scene.add.text(char.getSprite().x - 32, char.getSprite().y - 32, "",
+								{ font: "14px Arial" });
 							personagenst1.push(char);
 							console.log(personagenst1)
 						} else if (this.time === 2 && pointerTileX >= 10 && pointerTileX < 20) {
 							this.isOnBoard = true;
 							let char = createChar(this.texture.key, this.time);
+							//seta contexto do phaser e do a* para acessar dentro de character
 							char.setSprite(this);
-							char.setScene(scene); //seta scene para usar acessa-la dentro de character
+							char.setScene(scene);
+							char.setMap(map);
+							char.setFinder(finder);
+							char.text = scene.add.text(char.getSprite().x - 32, char.getSprite().y - 32, "",
+								{ font: "14px Arial" });
 							personagenst2.push(char);
 							console.log(personagenst2);
 						}
@@ -340,6 +346,31 @@ function update(time, delta) {
 	marker.x = map.tileToWorldX(pointerTileX);
 	marker.y = map.tileToWorldY(pointerTileY);
 	marker.setVisible(!collidesWithSomething(pointerTileX, pointerTileY));
+
+
+	personagenst1.forEach(function (char) {
+		char.text.setX(char.getSprite().x - 32);
+		char.text.setY(char.getSprite().y - 32);
+		char.text.setText("hp: " + char.getLife());
+
+		if (char.getLife() <= 0) {
+			char.getSprite().destroy();
+			char.text.destroy();
+		}
+	});
+
+	personagenst2.forEach(function (char) {
+		char.text.setX(char.getSprite().x - 32);
+		char.text.setY(char.getSprite().y - 32);
+		char.text.setText("hp: " + char.getLife());
+
+		if (char.getLife() <= 0) {
+			char.getSprite().x = -100;
+			char.getSprite().y = -100;
+			char.getSprite().destroy();
+			char.text.destroy();
+		}
+	});
 }
 
 function getTileID(x, y) {
@@ -402,16 +433,16 @@ function startBattle(scene) {
 		callback: function () {
 			n -= 1;
 			text.setText(n < 1 ? "Batalhar!" : n);
-			if (n < 0) text.destroy();
+			if (n < 0) {
+				text.destroy();
+				//cria e executa bts
+				criaBts(personagenst1, personagenst2);
+				executaBts(personagenst1);
+			}
 		},
 		callbackScope: scene,
 		repeat: 3
 	});
-
-	//cria e executa bts
-	criaBts(personagenst1, personagenst1);
-	executaBts(personagenst1);
-
 }
 
 function createChar(sprite, time) {
@@ -455,9 +486,43 @@ function executaBts(personagens) {
 function criaWarriorBt(char, enemies) {
 	let sequence = new BT.Sequence();
 	let getClosestEnemy = new BT.GetClosestEnemy(char, enemies);
+	let isNotInRange = new BT.CheckIfTargetIsInRange(char);
+	let targetOnSamePosition = new BT.TargetOnSamePosition(char);
 	let move = new BT.Move(char);
+	let attack = new BT.Attack(char);
+	let isAlive = new BT.IsAlive(char);
+	let isTargetAlive = new BT.IsTargetAlive(char);
+	let sequence2 = new BT.Sequence();
+	let sequence3 = new BT.Sequence();
+	let sequence4 = new BT.Sequence();
+	let sequence5 = new BT.Sequence();
+	let sequence6 = new BT.Sequence();
+	let selector = new BT.Selector();
+	let selector2 = new BT.Selector();
+	let selector3 = new BT.Selector();
+	let repeatTilFail = new BT.RepeatTilFailDecorator(sequence2);
+
 	let root = new BT.Root(sequence);
+	sequence.addChild(isAlive);
 	sequence.addChild(getClosestEnemy);
 	sequence.addChild(move);
+	sequence.addChild(repeatTilFail);
+	sequence2.addChild(isAlive);
+	sequence2.addChild(selector);
+	sequence2.addChild(selector2);
+	selector.addChild(sequence6);
+	sequence6.addChild(targetOnSamePosition);
+	sequence6.addChild(isTargetAlive);
+	selector.addChild(sequence3);
+	sequence3.addChild(getClosestEnemy);
+	sequence3.addChild(move);
+	selector2.addChild(isNotInRange);
+	selector2.addChild(selector3);
+	selector3.addChild(sequence4);
+	selector3.addChild(sequence5);
+	sequence4.addChild(isTargetAlive);
+	sequence4.addChild(attack);
+	sequence5.addChild(getClosestEnemy);
+	sequence5.addChild(move);
 	char.setBt(root);
 }

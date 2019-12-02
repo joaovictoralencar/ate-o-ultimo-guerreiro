@@ -1,7 +1,7 @@
 import DecoratorNode from './DecoratorNode.mjs';
 import { status as statusNode } from '../consts/consts.mjs';
 export default class RepeaterNode extends DecoratorNode {
-    constructor(newChild){
+    constructor(newChild) {
         super(newChild);
         let iLimit;
 
@@ -10,10 +10,10 @@ export default class RepeaterNode extends DecoratorNode {
             iLimit = newILimit;
         }
     }
-    update(){
+    update() {
         let child = this.getChild();
         let iCounter = 0;
-        while(true){
+        while (true) {
             let status = child.tick();
             iCounter++;
             if (status === statusNode.RUNNING) break;

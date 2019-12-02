@@ -1,5 +1,5 @@
 import CompositeNode from './CompositeNode.mjs'
-import { status }  from '../consts/consts.mjs'
+import { status } from '../consts/consts.mjs'
 
 export default class Sequence extends CompositeNode {
     constructor() {

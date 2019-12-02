@@ -23,6 +23,10 @@ export {
 }
     from './Decorators/RepeaterDecorator.mjs'
 export {
+    default as RepeatTilFailDecorator
+}
+    from './Decorators/RepeatTilFailDecorator.mjs'
+export {
     default as Root
 }
     from './Decorators/Root.mjs'
@@ -62,6 +66,18 @@ export {
     default as GetClosestEnemy
 }
     from './Actions/GetClosestEnemy.mjs'
+export {
+    default as IsAlive
+}
+    from './Actions/IsAlive.mjs'
+export {
+    default as IsTargetAlive
+}
+    from './Actions/IsTargetAlive.mjs'
+export {
+    default as TargetOnSamePosition
+}
+    from './Actions/TargetOnSamePosition.mjs'
 export {
     default as status
 }

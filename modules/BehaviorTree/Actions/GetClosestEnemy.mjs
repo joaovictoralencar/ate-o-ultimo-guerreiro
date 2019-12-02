@@ -8,7 +8,10 @@ export default class GetClosestEnemy extends Node {
         this.enemies = enemies;
     }
     update() {
-        this.character.getClosestEnemy(this.enemies);
-        return status.SUCCESS;
+        if (this.character.getClosestEnemy(this.enemies) === true) {
+            return status.SUCCESS;
+        } else {
+            return status.FAILURE;
+        }
     }
 };
