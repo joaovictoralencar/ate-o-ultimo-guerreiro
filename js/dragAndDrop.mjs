@@ -30,7 +30,7 @@ var finder;
 var personagenst1 = [];
 var personagenst2 = [];
 //maximo de personagens por time
-var MAX_PERSONAGENS = 4;
+var MAX_PERSONAGENS = 2;
 //Determina se os times estão prontos
 var Ready = {};
 Ready.time1 = false;
@@ -136,13 +136,19 @@ function create() {
 	let t1id = 0
 	time1.forEach(function (p) {
 		p.time = 1;
+		p.isOnBoard = false;
 		p.setInteractive({
 			useHandCursor: true,
 			draggable: true //deixa o personagens do time 1 da loja draggables
 		});
-		p.on("pointerdown", function () {
-			if (personagenst1.length < MAX_PERSONAGENS) dragPersonagem(this, p);
-		});
+		// p.on("pointerdown", function () {
+		// 	if (personagenst1.length < MAX_PERSONAGENS) {
+		// 		console.log("pointer down 1")
+		// 		dragPersonagem(this, p);
+		// 	}
+
+		// });
+		dragPersonagem(p);
 		p.id = t1id;
 		t1id++;
 	});
@@ -151,13 +157,12 @@ function create() {
 	let t2id = 0;
 	time2.forEach(function (p) {
 		p.time = 2;
+		p.isOnBoard = false;
 		p.setInteractive({
 			useHandCursor: true,
 			draggable: true //deixa o personagens do time 2 da loja draggables
 		});
-		p.on("pointerdown", function () {
-			if (personagenst2.length < MAX_PERSONAGENS) dragPersonagem(this, p);
-		});
+		dragPersonagem(p);
 		p.id = t2id;
 		t2id++;
 		p.flipX = true;
@@ -165,22 +170,22 @@ function create() {
 	//configura as propriedades do drag and drop
 	function dragPersonagem(selectedSprite) {
 		// adiciona um personagem na loja para ficar no lugar dele
-		if (isOnStore(selectedSprite)) {
-			var novoPersonLoja = scene.physics.add
-				.image(selectedSprite.x, selectedSprite.y, selectedSprite.texture.key) //deixa igual onde tava que vai ser arrastado
-				.setInteractive({
-					useHandCursor: true,
-					draggable: true //deixa o novo personagem da loja draggable
-				});
-			novoPersonLoja.time = selectedSprite.time; //define o time dele
-			if (novoPersonLoja.time === 2) novoPersonLoja.flipX = true; // se for do time dois, flipa
-			novoPersonLoja.on("pointerdown", function () {
-				dragPersonagem(this, novoPersonLoja); //adicionar a função draggable
-			});
-		}
+		selectedSprite.on("pointerdown", function(){
+			if (isOnStore(selectedSprite) && selectedSprite.isOnBoard === false) {
+				var novoPersonLoja = scene.physics.add
+					.image(selectedSprite.x, selectedSprite.y, selectedSprite.texture.key) //deixa igual onde tava que vai ser arrastado
+					.setInteractive({
+						useHandCursor: true,
+						draggable: true //deixa o novo personagem da loja draggable
+					});
+				novoPersonLoja.time = selectedSprite.time; //define o time dele
+				novoPersonLoja.isOnBoard = false;
+				if (novoPersonLoja.time === 2) novoPersonLoja.flipX = true; // se for do time dois, flipa
+				dragPersonagem(novoPersonLoja);
+			}
+		});
 		// se o personagem for do time 2, já pinta ele, se não, vai normal
 		selectedSprite.tint = selectedSprite.time == 2 ? 0xdd0000 : 0xffffff;
-
 		//o que acontece quando o personagem é movido
 		selectedSprite.on("drag", function (pointer, dragX, dragY) {
 			//Não executa a função para o time que estiver pronto
@@ -226,8 +231,7 @@ function create() {
 					});
 					personagenst1.splice(i, 1)
 					console.log(personagenst1)
-				}
-				else {
+				} else {
 					let i;
 					personagenst2.forEach((e, index) => {
 						if (e.getSprite() === this && e.getId() === this.id)
@@ -238,11 +242,23 @@ function create() {
 				}
 				this.destroy();
 			} else {
+				if (selectedSprite.time === 1 && personagenst1.length === MAX_PERSONAGENS) {
+					if (!this.isOnBoard)
+						this.destroy();
+					return;
+				}
+				if (selectedSprite.time === 2 && personagenst2.length === MAX_PERSONAGENS) {
+					if (!this.isOnBoard)
+						this.destroy();
+					return;
+				}
+				if (this.isOnBoard) return
 				if (canPlacePersonOnTile(pointer, this) && !isOnStore(this)) {
 					var pointerTileX = map.worldToTileX(pointer.x);
 					var pointerTileY = map.worldToTileY(pointer.y);
 					if (!collidesWithSomething(pointerTileX, pointerTileY)) {
 						if (this.time === 1 && pointerTileX > 0 && pointerTileX < 10) {
+							this.isOnBoard = true;
 							let char = createChar(this.texture.key, this.time);
 							//seta contexto do phaser e do a* para acessar dentro de character
 							char.setSprite(this);
@@ -252,13 +268,13 @@ function create() {
 
 							personagenst1.push(char);
 							console.log(personagenst1)
-						}
-						else if (this.time === 2 && pointerTileX >= 10 && pointerTileX < 20) {
+						} else if (this.time === 2 && pointerTileX >= 10 && pointerTileX < 20) {
+							this.isOnBoard = true;
 							let char = createChar(this.texture.key, this.time);
 							char.setSprite(this);
-							char.setScene(scene);//seta scene para usar acessa-la dentro de character
+							char.setScene(scene); //seta scene para usar acessa-la dentro de character
 							personagenst2.push(char);
-							console.log(personagenst1);
+							console.log(personagenst2);
 						}
 					}
 				}
@@ -270,8 +286,6 @@ function create() {
 	}
 
 	function canPlacePersonOnTile(pointer, selectedSprite) {
-		if (selectedSprite.time === 1 && personagenst1.length === MAX_PERSONAGENS) return false
-		if (selectedSprite.time === 2 && personagenst2.length === MAX_PERSONAGENS) return false
 		//faz o snap para as coordenadas do tile, transformando para coordenadas de mundo
 		var snapX = getSnapX(pointer);
 		var snapY = getSnapY(pointer);
@@ -286,6 +300,7 @@ function create() {
 			});
 		} else if (selectedSprite.time === 2) {
 			personagenst2.forEach(p => {
+				p = p.getSprite();
 				if (p != null && snapX == p.x && snapY == p.y) {
 					overlap = true;
 				}
@@ -401,9 +416,11 @@ function startBattle(scene) {
 
 function createChar(sprite, time) {
 	let id = 0;
-	if (time === 1 && personagenst1.length !== 0) { id = personagenst1.length - 1; }
-	else if (time === 2 && personagenst2.length !== 0) { id = personagenst2.length - 1; }
-
+	if (time === 1 && personagenst1.length !== 0) {
+		id = personagenst1.length - 1;
+	} else if (time === 2 && personagenst2.length !== 0) {
+		id = personagenst2.length - 1;
+	}
 	switch (sprite) {
 		case 'warrior':
 			return new Char.Warrior(id);
