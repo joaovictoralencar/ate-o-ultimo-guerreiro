@@ -30,7 +30,7 @@ var finder;
 var personagenst1 = [];
 var personagenst2 = [];
 //maximo de personagens por time
-var MAX_PERSONAGENS = 2;
+var MAX_PERSONAGENS = 5;
 //Determina se os times estão prontos
 var Ready = {};
 Ready.time1 = false;
@@ -438,6 +438,8 @@ function startBattle(scene) {
 				//cria e executa bts
 				criaBts(personagenst1, personagenst2);
 				executaBts(personagenst1);
+				criaBts(personagenst2, personagenst1);
+				executaBts(personagenst2);
 			}
 		},
 		callbackScope: scene,
@@ -472,7 +474,18 @@ function isOnStore(sprite) {
 
 function criaBts(personagens, enemies) {
 	personagens.forEach(function (char) {
-		criaWarriorBt(char, enemies);
+		console.log(char.getType());
+		switch (char.getType()) {
+			case 'Assassin':
+				criaAssassinBt(char, enemies);
+				break;
+			case 'Warrior':
+				criaWarriorBt(char, enemies);
+				break;
+			default:
+				criaWarriorBt(char, enemies);
+				break;
+		}
 	});
 }
 
@@ -510,7 +523,7 @@ function criaWarriorBt(char, enemies) {
 	sequence2.addChild(isAlive);
 	sequence2.addChild(selector);
 	sequence2.addChild(selector2);
-	selector.addChild(sequence6);
+	//selector.addChild(sequence6);
 	sequence6.addChild(targetOnSamePosition);
 	sequence6.addChild(isTargetAlive);
 	selector.addChild(sequence3);
@@ -523,6 +536,50 @@ function criaWarriorBt(char, enemies) {
 	sequence4.addChild(isTargetAlive);
 	sequence4.addChild(attack);
 	sequence5.addChild(getClosestEnemy);
+	sequence5.addChild(move);
+	char.setBt(root);
+}
+
+function criaAssassinBt(char, enemies) {
+	let sequence = new BT.Sequence();
+	let getLeastHPEnemy = new BT.GetLeastHPEnemy(char, enemies);
+	let isNotInRange = new BT.CheckIfTargetIsInRange(char);
+	let targetOnSamePosition = new BT.TargetOnSamePosition(char);
+	let move = new BT.Move(char);
+	let attack = new BT.Attack(char);
+	let isAlive = new BT.IsAlive(char);
+	let isTargetAlive = new BT.IsTargetAlive(char);
+	let sequence2 = new BT.Sequence();
+	let sequence3 = new BT.Sequence();
+	let sequence4 = new BT.Sequence();
+	let sequence5 = new BT.Sequence();
+	let sequence6 = new BT.Sequence();
+	let selector = new BT.Selector();
+	let selector2 = new BT.Selector();
+	let selector3 = new BT.Selector();
+	let repeatTilFail = new BT.RepeatTilFailDecorator(sequence2);
+
+	let root = new BT.Root(sequence);
+	sequence.addChild(isAlive);
+	sequence.addChild(getLeastHPEnemy);
+	sequence.addChild(move);
+	sequence.addChild(repeatTilFail);
+	sequence2.addChild(isAlive);
+	sequence2.addChild(selector);
+	sequence2.addChild(selector2);
+	//selector.addChild(sequence6);
+	sequence6.addChild(targetOnSamePosition);
+	sequence6.addChild(isTargetAlive);
+	selector.addChild(sequence3);
+	sequence3.addChild(getLeastHPEnemy);
+	sequence3.addChild(move);
+	selector2.addChild(isNotInRange);
+	selector2.addChild(selector3);
+	selector3.addChild(sequence4);
+	selector3.addChild(sequence5);
+	sequence4.addChild(isTargetAlive);
+	sequence4.addChild(attack);
+	sequence5.addChild(getLeastHPEnemy);
 	sequence5.addChild(move);
 	char.setBt(root);
 }

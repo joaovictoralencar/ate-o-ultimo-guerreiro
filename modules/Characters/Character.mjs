@@ -102,30 +102,31 @@ export default class Character {
                     char.move();
                 }, []);
             }
-        }
-        //console.log("(" + this.getId() + ")[" + this.getType() + "] is moving");
-        // Sets up a list of tweens, one for each tile to walk, that will be chained by the timeline
-        var tweens = [];
-        var path = this.getPath();
-        var scene = this.getScene();
-        for (var i = 0; i < path.length - 2; i++) {
-            var ex = path[i + 1].x;
-            var ey = path[i + 1].y;
-            tweens.push({
-                targets: this.getSprite(),
-                x: {
-                    value: ex * 32 + 16,
-                    duration: 200
-                },
-                y: {
-                    value: ey * 32 + 16,
-                    duration: 200
-                }
+        } else {
+            //console.log("(" + this.getId() + ")[" + this.getType() + "] is moving");
+            // Sets up a list of tweens, one for each tile to walk, that will be chained by the timeline
+            var tweens = [];
+            var path = this.getPath();
+            var scene = this.getScene();
+            for (var i = 0; i < path.length - 2; i++) {
+                var ex = path[i + 1].x;
+                var ey = path[i + 1].y;
+                tweens.push({
+                    targets: this.getSprite(),
+                    x: {
+                        value: ex * 32 + 16,
+                        duration: 200
+                    },
+                    y: {
+                        value: ey * 32 + 16,
+                        duration: 200
+                    }
+                });
+            }
+            char.movement = scene.tweens.timeline({
+                tweens: tweens
             });
         }
-        char.movement = scene.tweens.timeline({
-            tweens: tweens
-        });
     }
     attack() {
         //console.log("(" + this.getId() + ")[" + this.getType() + "] is attacking");
@@ -138,6 +139,30 @@ export default class Character {
         }
         return true;
     }
+    getLeastHPEnemy(enemies) {
+        if (enemies === null) {
+            return false;
+        }
+
+        var char = this;
+        var target = null;
+
+        enemies.forEach(function (enemy) {
+            if (target === null) { target = enemy; }
+            if ((target.getLife() > enemy.getLife() && enemy.getLife() > 0)
+                || target.getLife() <= 0) {
+                target = enemy;
+            }
+        });
+
+        if (target && target.getLife() <= 0) {
+            return false;
+        }
+        this.setTarget(target);
+        this.findPath();
+        return true;
+    }
+
     getClosestEnemy(enemies) {
         if (enemies === null) {
             return false;
@@ -148,13 +173,13 @@ export default class Character {
 
         enemies.forEach(function (enemy) {
             if (target === null) { target = enemy; }
-            if (char.getCharacterDistance(target) > char.getCharacterDistance(enemy)
+            if ((char.getCharacterDistance(target) > char.getCharacterDistance(enemy) && enemy.getLife() > 0)
                 || target.getLife() <= 0) {
                 target = enemy;
             }
         });
-        console.log(target.getLife());
-        if (target.getLife() <= 0) {
+
+        if (target && target.getLife() <= 0) {
             return false;
         }
         this.setTarget(target);

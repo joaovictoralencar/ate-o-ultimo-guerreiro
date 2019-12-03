@@ -79,6 +79,10 @@ export {
 }
     from './Actions/TargetOnSamePosition.mjs'
 export {
+    default as GetLeastHPEnemy
+}
+    from './Actions/GetLeastHPEnemy.mjs'
+export {
     default as status
 }
     from './consts/consts.mjs'
